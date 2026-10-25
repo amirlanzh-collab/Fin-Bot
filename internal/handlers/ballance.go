@@ -1,9 +1,20 @@
 package handlers
 
-import tele "gopkg.in/telebot.v3"
+import (
+	"finbot/service"
+	"log"
 
-func Ballance(bot *tele.Bot) {
+	tele "gopkg.in/telebot.v3"
+)
+
+func Ballance(bot *tele.Bot, accountService *service.AccountService) {
 	bot.Handle(&btnBallance, func(c tele.Context) error {
-		return c.Send("пока в разработке")
+		balance, err := accountService.GetBalance(c.Sender().ID)
+		if err != nil {
+			log.Println("balane:", err)
+			return c.Send("Не удалось получить ваш баланс, нажмите /start")
+		}
+
+		return c.Send("Ваш баланс:" + balance.StringFixed(2))
 	})
 }

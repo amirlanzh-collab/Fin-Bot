@@ -4,6 +4,7 @@ import (
 	"finbot/internal/config"
 	"finbot/internal/database.go"
 	"finbot/internal/handlers"
+	"finbot/service"
 	"log"
 	"time"
 
@@ -29,9 +30,14 @@ func main() {
 	database.Connect(cfg)
 	database.AutoMigrate()
 
-	handlers.SendMenu(bot)
+	accountService := service.NewAccounrService(database.DB)
+	userService := service.NewUserService(database.DB)
+
+	handlers.SendMenu(bot, userService)
+	handlers.Refferal(bot)
 	handlers.History(bot)
-	handlers.Ballance(bot)
+
+	handlers.Ballance(bot, accountService)
 	handlers.Transaction(bot)
 	handlers.Help(bot)
 

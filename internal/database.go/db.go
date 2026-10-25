@@ -27,11 +27,11 @@ func Connect(cfg *config.Config) {
 }
 
 func AutoMigrate() error {
-	err := DB.AutoMigrate(&User{}, &Ballance{}, &Operation{})
+	err := DB.AutoMigrate(&User{}, &Account{}, &Operation{}, &Referral{})
 	if err != nil {
 		return fmt.Errorf("Ошибка автомиграции базы данных:%w", err)
 	}
-	log.Println("автомиграция прошла успешно")
+	log.Println("✅ Автомиграция прошла успешно")
 
 	return nil
 }
