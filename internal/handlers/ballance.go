@@ -4,7 +4,7 @@ import (
 	"finbot/service"
 	"log"
 
-	tele "gopkg.in/telebot.v3"
+	tele "gopkg.in/telebot.v4"
 )
 
 func Ballance(bot *tele.Bot, accountService *service.AccountService) {
