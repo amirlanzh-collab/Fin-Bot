@@ -32,11 +32,11 @@ func main() {
 
 	accountService := service.NewAccounrService(database.DB)
 	userService := service.NewUserService(database.DB)
+	operationService := service.NewOperationService(database.DB)
 
 	handlers.SendMenu(bot, userService)
 	handlers.Refferal(bot)
-	handlers.History(bot)
-
+	handlers.History(bot, operationService)
 	handlers.Ballance(bot, accountService)
 	handlers.Transaction(bot)
 	handlers.Help(bot)
