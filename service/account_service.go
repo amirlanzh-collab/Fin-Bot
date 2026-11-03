@@ -1,7 +1,7 @@
 package service
 
 import (
-	"finbot/internal/database.go"
+	"finbot/database"
 
 	"github.com/shopspring/decimal"
 

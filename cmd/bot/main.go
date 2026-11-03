@@ -1,14 +1,14 @@
 package main
 
 import (
+	"finbot/database"
 	"finbot/internal/config"
-	"finbot/internal/database.go"
 	"finbot/internal/handlers"
 	"finbot/service"
 	"log"
 	"time"
 
-	tele "gopkg.in/telebot.v3"
+	tele "gopkg.in/telebot.v4"
 )
 
 func main() {

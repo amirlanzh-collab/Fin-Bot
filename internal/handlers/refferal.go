@@ -1,6 +1,6 @@
 package handlers
 
-import tele "gopkg.in/telebot.v3"
+import tele "gopkg.in/telebot.v4"
 
 func Refferal(bot *tele.Bot) {
 	bot.Handle(&btnRefUrl, func(c tele.Context) error {

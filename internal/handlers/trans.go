@@ -1,6 +1,6 @@
 package handlers
 
-import tele "gopkg.in/telebot.v3"
+import tele "gopkg.in/telebot.v4"
 
 func Transaction(bot *tele.Bot) {
 	TransMarkUp := tele.ReplyMarkup{}

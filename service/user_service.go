@@ -2,7 +2,7 @@ package service
 
 import (
 	"errors"
-	"finbot/internal/database.go"
+	"finbot/database"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
