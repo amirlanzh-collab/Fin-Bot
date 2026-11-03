@@ -2,6 +2,7 @@ package main
 
 import (
 	"finbot/database"
+	"finbot/database/models"
 	"finbot/internal/config"
 	"finbot/internal/handlers"
 	"finbot/service"
@@ -28,7 +29,19 @@ func main() {
 	}
 
 	database.Connect(cfg)
-	database.AutoMigrate()
+
+	err = database.DB.AutoMigrate(
+		&models.User{},
+		&models.Account{},
+		&models.Operation{},
+		&models.Referral{},
+	)
+
+	if err != nil {
+		log.Fatalf("Ошибка автомиграции")
+	}
+
+	log.Println("✅ Автомиграция прошла успешно!")
 
 	accountService := service.NewAccounrService(database.DB)
 	userService := service.NewUserService(database.DB)

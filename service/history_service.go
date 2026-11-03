@@ -1,7 +1,7 @@
 package service
 
 import (
-	"finbot/database.go"
+	"finbot/database/models"
 
 	"gorm.io/gorm"
 )
@@ -14,8 +14,8 @@ func NewOperationService(db *gorm.DB) *OperationService {
 	return &OperationService{db: db}
 }
 
-func (s *OperationService) GetHistory(tgID int64) ([]database.Operation, error) {
-	var operations []database.Operation
+func (s *OperationService) GetHistory(tgID int64) ([]models.Operation, error) {
+	var operations []models.Operation
 
 	err := s.db.
 		Joins("JOIN accounts ON accounts.id =  operations.account_id").

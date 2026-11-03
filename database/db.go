@@ -25,13 +25,3 @@ func Connect(cfg *config.Config) {
 
 	log.Println("✅ Успешное подключение к PostgreSQL")
 }
-
-func AutoMigrate() error {
-	err := DB.AutoMigrate(&User{}, &Account{}, &Operation{}, &Referral{})
-	if err != nil {
-		return fmt.Errorf("Ошибка автомиграции базы данных:%w", err)
-	}
-	log.Println("✅ Автомиграция прошла успешно")
-
-	return nil
-}

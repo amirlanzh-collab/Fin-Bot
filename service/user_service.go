@@ -2,7 +2,8 @@ package service
 
 import (
 	"errors"
-	"finbot/database"
+
+	"finbot/database/models"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -16,8 +17,8 @@ func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{db: db}
 }
 
-func (s *UserService) RegisterUser(tgID int64) (*database.User, error) {
-	var user database.User
+func (s *UserService) RegisterUser(tgID int64) (*models.User, error) {
+	var user models.User
 
 	err := s.db.Where("tg_id = ?", tgID).First(&user).Error
 	if err == nil {
@@ -34,23 +35,23 @@ func (s *UserService) RegisterUser(tgID int64) (*database.User, error) {
 			return err
 		}
 
-		account := database.Account{UserID: user.ID}
+		account := models.Account{UserID: user.ID}
 		err = trs.Create(&account).Error
 		if err != nil {
 			return err
 		}
 
-		operation := database.Operation{
+		operation := models.Operation{
 			AccountID: account.ID,
 			Amount:    decimal.NewFromInt(1000),
-			Type:      database.OpWelcomeBonus,
+			Type:      models.OpWelcomeBonus,
 		}
 		err = trs.Create(&operation).Error
 		if err != nil {
 			return err
 		}
 
-		err = trs.Model(&database.Account{}).
+		err = trs.Model(&models.Account{}).
 			Where("id = ?", account.ID).
 			UpdateColumn("balance", gorm.Expr("balance + ?", operation.Amount)).Error
 		if err != nil {

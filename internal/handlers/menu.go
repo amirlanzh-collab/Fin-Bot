@@ -26,6 +26,6 @@ func SendMenu(bot *tele.Bot, userService *service.UserService) {
 		if err != nil {
 			return c.Send("произошла ошибка, попробуй позже")
 		}
-		return c.Send("Привет! я твой бот для финансовых транзакий", &menu)
+		return c.Send("Привет! я твой бот для финансовых транзакций", &menu)
 	})
 }

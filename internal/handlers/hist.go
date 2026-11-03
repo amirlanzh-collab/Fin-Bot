@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"finbot/internal/database.go"
+	"finbot/database/models"
 	"finbot/service"
 	"fmt"
 	"strconv"
@@ -58,7 +58,7 @@ func History(bot *tele.Bot, operationService *service.OperationService) {
 	})
 }
 
-func BuildHistPage(history []database.Operation, page int) (string, *tele.ReplyMarkup) {
+func BuildHistPage(history []models.Operation, page int) (string, *tele.ReplyMarkup) {
 	if page < 1 {
 		page = 1
 	}

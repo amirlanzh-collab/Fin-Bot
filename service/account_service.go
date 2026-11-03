@@ -1,7 +1,7 @@
 package service
 
 import (
-	"finbot/database"
+	"finbot/database/models"
 
 	"github.com/shopspring/decimal"
 
@@ -17,7 +17,7 @@ func NewAccounrService(db *gorm.DB) *AccountService {
 }
 
 func (s *AccountService) GetBalance(tgID int64) (decimal.Decimal, error) {
-	var account database.Account
+	var account models.Account
 	err := s.db.
 		Joins("JOIN users ON users.id = accounts.user_id").
 		Where("users.tg_id = ?", tgID).
