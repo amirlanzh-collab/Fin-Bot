@@ -1,31 +1,30 @@
 package handlers
 
 import (
-	"finbot/service"
+	"log"
+	"strconv"
+	"strings"
 
 	tele "gopkg.in/telebot.v4"
 )
 
-var (
-	menu           = tele.ReplyMarkup{ResizeKeyboard: true}
-	btnBallance    = menu.Text("Баланс")
-	btnHistory     = menu.Text("История")
-	btnTransaction = menu.Text("Перевод")
-	btnHelp        = menu.Text("Помощь")
-	btnRefUrl      = menu.Text("Реферальная система")
-)
-
-func SendMenu(bot *tele.Bot, userService *service.UserService) {
-	menu.Reply(
-		menu.Row(btnBallance, btnTransaction),
-		menu.Row(btnHistory, btnHelp),
-		menu.Row(btnRefUrl),
-	)
-	bot.Handle("/start", func(c tele.Context) error {
-		_, err := userService.RegisterUser(c.Sender().ID)
-		if err != nil {
-			return c.Send("произошла ошибка, попробуй позже")
+func (h *Handler) SendMenu(c tele.Context) error {
+	initMenu()
+	payload := c.Message().Payload
+	var referrerTgID int64
+	if rest, ok := strings.CutPrefix(payload, "ref_"); ok {
+		id, err := strconv.ParseInt(rest, 10, 64)
+		if err == nil {
+			referrerTgID = id
 		}
-		return c.Send("Привет! я твой бот для финансовых транзакций", &menu)
-	})
+	}
+
+	log.Println("referrer:", referrerTgID)
+
+	_, err := h.users.RegisterUser(c.Sender().ID)
+	if err != nil {
+		log.Fatal(err)
+		return c.Send("Ошибка регистрации, попробуйте позже")
+	}
+	return c.Send("Привет! Я твой бот для финансовых операций!", &menu)
 }

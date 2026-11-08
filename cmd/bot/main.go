@@ -5,10 +5,10 @@ import (
 	"finbot/database/models"
 	"finbot/internal/config"
 	"finbot/internal/handlers"
-	"finbot/service"
 	"log"
 	"time"
 
+	"github.com/shopspring/decimal"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -43,16 +43,15 @@ func main() {
 
 	log.Println("✅ Автомиграция прошла успешно!")
 
-	accountService := service.NewAccounrService(database.DB)
-	userService := service.NewUserService(database.DB)
-	operationService := service.NewOperationService(database.DB)
+	welcomeBonus, err := decimal.NewFromString(cfg.WelcomeBonus)
 
-	handlers.SendMenu(bot, userService)
-	handlers.Refferal(bot)
-	handlers.History(bot, operationService)
-	handlers.Ballance(bot, accountService)
-	handlers.Transaction(bot)
-	handlers.Help(bot)
+	accountService := models.NewAccounrService(database.DB)
+	userService := models.NewUserService(database.DB, welcomeBonus)
+	operationService := models.NewOperationService(database.DB)
+
+	h := handlers.NewHandler(bot, userService, accountService, operationService)
+
+	h.Router(bot)
 
 	log.Println("🚀 Сервер успешно запущен!")
 	bot.Start()

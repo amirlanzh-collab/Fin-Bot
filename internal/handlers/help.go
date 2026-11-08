@@ -2,8 +2,6 @@ package handlers
 
 import tele "gopkg.in/telebot.v4"
 
-func Help(bot *tele.Bot) {
-	bot.Handle(&btnHelp, func(c tele.Context) error {
-		return c.Send("Этот бот умеет переводить суммы, показывать историю переводов и баланс")
-	})
+func (h *Handler) Help(c tele.Context) error {
+	return c.Send("Этот бот умеет переводить суммы, показывать историю переводов и баланс")
 }
