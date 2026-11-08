@@ -1,11 +1,11 @@
 package models
 
 import (
-	"errors"
 	"time"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type User struct {
@@ -29,19 +29,15 @@ func NewUserService(db *gorm.DB, welcomeBonus decimal.Decimal) *UserService {
 func (s *UserService) RegisterUser(tgID int64) (*User, error) {
 	var user *User
 
-	err := s.db.Where("tg_id = ?", tgID).First(&user).Error
-	if err == nil {
-		return user, nil
-	}
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
-
-	err = s.db.Transaction(func(trs *gorm.DB) error {
+	err := s.db.Transaction(func(trs *gorm.DB) error {
 		var err error
-		user, err = createUser(tgID, trs)
+		user, created, err := createUser(tgID, trs)
 		if err != nil {
 			return err
+		}
+
+		if !created {
+			return nil
 		}
 
 		account, err := createAccount(user.ID, trs)
@@ -62,14 +58,22 @@ func (s *UserService) RegisterUser(tgID int64) (*User, error) {
 	return user, nil
 }
 
-func createUser(tgID int64, db *gorm.DB) (*User, error) {
+func createUser(tgID int64, db *gorm.DB) (*User, bool, error) {
 	user := &User{TgID: tgID}
-	user.TgID = tgID
-	err := db.Create(&user).Error
-	if err != nil {
-		return nil, err
+
+	res := db.Clauses(clause.OnConflict{DoNothing: true}).Create(user).First(user)
+	if res.Error != nil {
+		return nil, false, res.Error
 	}
-	return user, nil
+	if res.RowsAffected == 0 {
+		err := db.Where("tg_id = ?", tgID).First(user).Error
+		if err != nil {
+			return nil, false, err
+		}
+		return user, false, nil
+	}
+
+	return user, true, nil
 }
 
 func createAccount(userID uint, db *gorm.DB) (*Account, error) {
