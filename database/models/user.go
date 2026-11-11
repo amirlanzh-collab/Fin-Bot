@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -11,33 +12,58 @@ import (
 type User struct {
 	ID         uint      `gorm:"primaryKey"`
 	TgID       int64     `gorm:"uniqueIndex;not null"`
+	Username   string    `gorm:"size(32);index;default:''"`
 	ReferrerID *uint     `gorm:"index"`
-	Referral   *User     `gorm:"foreignKey:ReferrerID;constraint:OnDelete:RESTRICT"`
 	Accounts   []Account `gorm:"foreignKey:UserID;constraint:OnDelete:RESTRICT"`
 	CreatedAt  time.Time
 }
 
 type UserService struct {
-	db           *gorm.DB
-	welcomeBonus decimal.Decimal
+	db            *gorm.DB
+	welcomeBonus  decimal.Decimal
+	referralBonus decimal.Decimal
 }
 
-func NewUserService(db *gorm.DB, welcomeBonus decimal.Decimal) *UserService {
-	return &UserService{db: db, welcomeBonus: welcomeBonus}
+func NewUserService(db *gorm.DB, welcomeBonus decimal.Decimal, referralBonus decimal.Decimal) *UserService {
+	return &UserService{db: db, welcomeBonus: welcomeBonus, referralBonus: referralBonus}
 }
 
-func (s *UserService) RegisterUser(tgID int64) (*User, error) {
+func (s *UserService) RegisterUser(tgID int64, username string, referrerTgID int64) (*User, error) {
 	var user *User
 
 	err := s.db.Transaction(func(trs *gorm.DB) error {
 		var err error
-		user, created, err := createUser(tgID, trs)
+		user, created, err := createUser(tgID, username, trs)
 		if err != nil {
 			return err
 		}
 
 		if !created {
 			return nil
+		}
+
+		if referrerTgID != 0 && referrerTgID != tgID {
+			var referrer User
+
+			err := trs.Where("tg_id = ?", referrerTgID).First(&referrer).Error
+			if err == nil {
+				err = trs.Model(user).Update("referrer_id", referrer.ID).Error
+				if err != nil {
+					return err
+				}
+				referral := &Referral{ReferrerID: referrer.ID, InvitedID: user.ID}
+				err = trs.Create(referral).Error
+				if err != nil {
+					return err
+				}
+
+				err = createRefBonus(referrer.ID, trs, s.referralBonus)
+				if err != nil {
+					return err
+				}
+			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
 		}
 
 		account, err := createAccount(user.ID, trs)
@@ -58,13 +84,14 @@ func (s *UserService) RegisterUser(tgID int64) (*User, error) {
 	return user, nil
 }
 
-func createUser(tgID int64, db *gorm.DB) (*User, bool, error) {
-	user := &User{TgID: tgID}
+func createUser(tgID int64, username string, db *gorm.DB) (*User, bool, error) {
+	user := &User{TgID: tgID, Username: username}
 
-	res := db.Clauses(clause.OnConflict{DoNothing: true}).Create(user).First(user)
+	res := db.Clauses(clause.OnConflict{DoNothing: true}).Create(user)
 	if res.Error != nil {
 		return nil, false, res.Error
 	}
+
 	if res.RowsAffected == 0 {
 		err := db.Where("tg_id = ?", tgID).First(user).Error
 		if err != nil {
@@ -91,6 +118,7 @@ func createWelcomeBonus(accountID uint, db *gorm.DB, amount decimal.Decimal) err
 		Amount:    amount,
 		Type:      OpWelcomeBonus,
 	}
+
 	err := db.Create(&operation).Error
 	if err != nil {
 		return err
@@ -100,7 +128,6 @@ func createWelcomeBonus(accountID uint, db *gorm.DB, amount decimal.Decimal) err
 		Where("id = ?", accountID).
 		UpdateColumn("balance", gorm.Expr("balance + ?", operation.Amount)).Error
 	if err != nil {
-
 		return err
 	}
 	return nil

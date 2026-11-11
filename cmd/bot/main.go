@@ -44,12 +44,14 @@ func main() {
 	log.Println("✅ Автомиграция прошла успешно!")
 
 	welcomeBonus, err := decimal.NewFromString(cfg.WelcomeBonus)
+	referralBonus, err := decimal.NewFromString(cfg.RefBonus)
 
 	accountService := models.NewAccounrService(database.DB)
-	userService := models.NewUserService(database.DB, welcomeBonus)
+	userService := models.NewUserService(database.DB, welcomeBonus, referralBonus)
 	operationService := models.NewOperationService(database.DB)
+	referralSevice := models.NewReferralService(database.DB)
 
-	h := handlers.NewHandler(bot, userService, accountService, operationService)
+	h := handlers.NewHandler(bot, userService, accountService, operationService, referralSevice)
 
 	h.Router(bot)
 

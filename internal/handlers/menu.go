@@ -19,9 +19,7 @@ func (h *Handler) SendMenu(c tele.Context) error {
 		}
 	}
 
-	log.Println("referrer:", referrerTgID)
-
-	_, err := h.users.RegisterUser(c.Sender().ID)
+	_, err := h.users.RegisterUser(c.Sender().ID, c.Sender().Username, referrerTgID)
 	if err != nil {
 		log.Fatal(err)
 		return c.Send("Ошибка регистрации, попробуйте позже")

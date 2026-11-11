@@ -10,14 +10,14 @@ var (
 	btnHistory     = menu.Text("История")
 	btnTransaction = menu.Text("Перевод")
 	btnHelp        = menu.Text("Помощь")
-	btnRefUrl      = menu.Text("Реферальная система")
+	btnRef         = menu.Text("Реферальная система")
 )
 
 func initMenu() {
 	menu.Reply(
 		menu.Row(btnBalance, btnTransaction),
 		menu.Row(btnHistory, btnHelp),
-		menu.Row(btnRefUrl),
+		menu.Row(btnRef),
 	)
 }
 
@@ -34,5 +34,18 @@ func initTransMenu() {
 	TransMarkUp.Inline(
 		TransMarkUp.Row(btn100, btn300, btn500, btn1000),
 		TransMarkUp.Row(btnCustomSum),
+	)
+}
+
+var (
+	RefMarkUp  = tele.ReplyMarkup{}
+	btnRefUrl  = RefMarkUp.Data("Ваша ссылка", "ref_url")
+	btnRefList = RefMarkUp.Data("Рефералы", "ref_list")
+)
+
+func initRefMenu() {
+	RefMarkUp.Inline(
+		RefMarkUp.Row(btnRefUrl),
+		RefMarkUp.Row(btnRefList),
 	)
 }
